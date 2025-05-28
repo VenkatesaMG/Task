@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework.decorators import APIView
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -9,6 +10,7 @@ from django.contrib.auth.hashers import make_password
 
 from .models import *
 from .serializers import *
+from .permissions import *
 
 User = get_user_model()
 class Home(APIView):
@@ -41,3 +43,11 @@ class UserChangePassAPIView(APIView):
         user.save()
         
         return Response({"message" : "Password changed successfully"})
+
+class ProductListCreateAPIView(generics.ListCreateAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsProjectOwner]
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+    def perform_create(self, serializer):
+        serializer.save(owner = self.request.user)

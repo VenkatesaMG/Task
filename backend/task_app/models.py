@@ -5,7 +5,13 @@ from django.db.models import Q
 import string
 import random
 
-ROLES = []
+ROLES = [
+    ("admin", "Admin"),
+    ("lead", "Lead"),
+    ("member", "Member"),
+    ("purchase", "Purchase")
+]
+
 PRIORITY = []
 STATUS = []
 
