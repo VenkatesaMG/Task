@@ -51,3 +51,21 @@ class ProductListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ProjectSerializer
     def perform_create(self, serializer):
         serializer.save(owner = self.request.user)
+
+class TaskListCreateAPIView(generics.ListCreateAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsProjectLead]
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    def perform_create(self, serializer):
+        serializer.save()
+
+class PurchaseListCreateAPIView(generics.ListCreateAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsProjectOwner]
+    queryset = Purchase.objects.all()
+    serializer_class = PurchaseSerializer
+    def perform_create(self, serializer):
+        supplier_name = self.request.data.get('supplier')
+        supplier_instance = Supplier.objects.get(supplier_org=supplier_name)
+        serializer.save(raised_by=self.request.user, supplier=supplier_instance)

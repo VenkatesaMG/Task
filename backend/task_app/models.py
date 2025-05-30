@@ -9,11 +9,21 @@ ROLES = [
     ("admin", "Admin"),
     ("lead", "Lead"),
     ("member", "Member"),
-    ("purchase", "Purchase")
+    ("purchaser", "Purchaser")
 ]
 
-PRIORITY = []
-STATUS = []
+PRIORITY = [
+    ("high", "High"),
+    ("medium", "Medium"),
+    ("low", "Low")
+]
+
+STATUS = [
+    ("raised", "Raised"),
+    ("approved", "Approved"),
+    ("in progress", "In Progress"),
+    ("delivered", "Delivered")
+]
 
 def generate_unique_code(length=6):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
@@ -38,12 +48,13 @@ class User(AbstractUser):
 class Project(models.Model):
     project_id = models.AutoField(primary_key=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='projects')
+    # project_lead = models.ForeignKey(User, blank=True, null=True)
     project_name = models.CharField(max_length=25)
     description = models.TextField()
     start_date = models.DateField()
     end_date = models.DateField()
     budget = models.FloatField()
-
+    
     class Meta:
         constraints = [
             models.CheckConstraint(
@@ -62,3 +73,19 @@ class Task(models.Model):
     def clean(self):
         if self.deadline > self.project.end_date:
             raise ValidationError("Task deadline must be on or before the project's end date.")
+
+class Supplier(models.Model):
+    supplier_org = models.CharField(max_length=25, unique=True)
+
+class Purchase(models.Model):
+    project_id = models.ForeignKey(Project, on_delete=models.CASCADE)
+    products = models.JSONField(default=list)
+    raised_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='purchases_raised'
+    )
+    reviewed_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='purchases_reviewed', blank=True, null=True
+    )
+    status = models.CharField(choices=STATUS, max_length=25)
+    date = models.DateField()
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
